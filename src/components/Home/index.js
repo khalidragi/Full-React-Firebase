@@ -1,6 +1,10 @@
 import React, { Component } from 'react';
 import { compose } from 'recompose';
-import { withAuthorization, withEmailVerification } from '../Session';
+import {
+  withAuthorization,
+  withEmailVerification,
+  AuthUserContext
+} from '../Session';
 import { withFirebase } from '../Firebase';
 
 const HomePage = () => (
@@ -21,9 +25,10 @@ class MessagesBase extends Component {
     this.setState({ text: event.target.value });
   };
 
-  onCreateMessage = event => {
+  onCreateMessage = (event, authUser) => {
     this.props.firebase.messages().push({
-      text: this.state.text
+      text: this.state.text,
+      userId: authUser.uid
     });
     this.setState({ text: '' });
     event.preventDefault();
@@ -52,20 +57,23 @@ class MessagesBase extends Component {
   render() {
     const { text, messages, loading } = this.state;
 
-    const { messages, loading } = this.state;
     return (
-      <div>
-        {loading && <div>Loading ...</div>}
-        {messages ? (
-          <MessageList messages={messages} />
-        ) : (
-          <div>There are no messages ...</div>
+      <AuthUserContext.Consumer>
+        {authUser => (
+          <div>
+            {loading && <div>Loading ...</div>}
+            {messages ? (
+              <MessageList messages={messages} />
+            ) : (
+              <div>There are no messages ...</div>
+            )}
+            <form onSubmit={event => this.onCreateMessage(event, authUser)}>
+              <input type='text' value={text} onChange={this.onChangeText} />
+              <button type='submit'>Send</button>
+            </form>
+          </div>
         )}
-        <form onSubmit={this.onCreateMessage}>
-          <input type='text' value={text} onChange={this.onChangeText} />
-          <button type='submit'>Send</button>
-        </form>
-      </div>
+      </AuthUserContext.Consumer>
     );
   }
 }
