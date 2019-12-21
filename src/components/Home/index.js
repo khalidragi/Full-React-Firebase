@@ -48,27 +48,27 @@ class MessagesBase extends Component {
     });
   };
 
-  onListenForMessages() {
+  onListenForMessages = () => {
     this.setState({ loading: true });
-    this.props.firebase
+    this.unsubscribe = this.props.firebase
       .messages()
-      .orderByChild('createdAt')
-      .limitToLast(this.state.limit)
-      .on('value', snapshot => {
-        const messageObject = snapshot.val();
-        if (messageObject) {
-          const messageList = Object.keys(messageObject)
-            .reverse()
-            .map(key => ({
-              ...messageObject[key],
-              uid: key
-            }));
-          this.setState({ messages: messageList, loading: false });
+      .orderBy('createdAt', 'desc')
+      .limit(this.state.limit)
+      .onSnapshot(snapshot => {
+        if (snapshot.size) {
+          let messages = [];
+          snapshot.forEach(doc =>
+            messages.push({ ...doc.data(), uid: doc.id })
+          );
+          this.setState({
+            messages: messages.reverse(),
+            loading: false
+          });
         } else {
           this.setState({ messages: null, loading: false });
         }
       });
-  }
+  };
 
   onNextPage = () => {
     this.setState(
@@ -82,7 +82,7 @@ class MessagesBase extends Component {
   }
 
   componentWillUnmount() {
-    this.props.firebase.messages().off();
+    this.unsubscribe();
   }
 
   render() {
