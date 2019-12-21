@@ -14,8 +14,20 @@ const HomePage = () => (
 class MessagesBase extends Component {
   constructor(props) {
     super(props);
-    this.state = { loading: false, messages: [] };
+    this.state = { text: '', loading: false, messages: [] };
   }
+
+  onChangeText = event => {
+    this.setState({ text: event.target.value });
+  };
+
+  onCreateMessage = event => {
+    this.props.firebase.messages().push({
+      text: this.state.text
+    });
+    this.setState({ text: '' });
+    event.preventDefault();
+  };
 
   componentDidMount() {
     this.setState({ loading: true });
@@ -38,6 +50,8 @@ class MessagesBase extends Component {
   }
 
   render() {
+    const { text, messages, loading } = this.state;
+
     const { messages, loading } = this.state;
     return (
       <div>
@@ -47,6 +61,10 @@ class MessagesBase extends Component {
         ) : (
           <div>There are no messages ...</div>
         )}
+        <form onSubmit={this.onCreateMessage}>
+          <input type='text' value={text} onChange={this.onChangeText} />
+          <button type='submit'>Send</button>
+        </form>
       </div>
     );
   }
