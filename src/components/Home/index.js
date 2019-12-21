@@ -95,7 +95,6 @@ class MessagesBase extends Component {
                 More
               </button>
             )}
-
             {loading && <div>Loading ...</div>}
             {messages ? (
               <MessageList
